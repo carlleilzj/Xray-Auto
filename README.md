@@ -29,7 +29,7 @@
 
 ## 💻 环境要求 | Requirements
 
-* **OS**: Debian 10+ / Ubuntu 20.04+
+* **OS**: Debian 10+
 * **Root**: 需要 root 权限运行
 * **Network**: 正常的互联网连接
 
@@ -61,9 +61,8 @@ wget -N [https://raw.githubusercontent.com/accforeve/Xray-Auto/main/install.sh](
 
 ### ⚠️ 免责声明 | Disclaimer
 
-* 本项目仅供学习、技术研究及科研使用。
+* 本项目仅供学习、技术研究及科研使用，非盈利目的。请于下载后 24 小时内删除, 不得用作任何商业用途, 文字、数据及图片均有所属版权, 如转载须注明来源。
 * 请勿用于任何违反当地法律法规的用途。
-* 使用本脚本产生的任何后果由用户自行承担。
-
+* 使用本脚本必循遵守部署免责声明。使用本程序必循遵守部署服务器所在地、所在国家和用户所在国家的法律法规，使用本脚本产生的任何后果由用户自行承担。
 [Project maintained by accforeve](https://github.com/accforeve)
 
