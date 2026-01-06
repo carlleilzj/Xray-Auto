@@ -11,9 +11,9 @@
 ## 🇨🇳 中文说明
 这是一个全自动化的 Xray 部署脚本，基于 **VLESS + Reality + XTLS-Vision/(xhttp)** 顶尖流控协议。专为 Debian 和 Ubuntu 系统设计，提供极致的性能优化与安全防护。
 
-* 版本: v0.1
+* 版本: v0.1 Final
 * 核心: Xray-core (VLESS + Reality)
-* 协议: TCP-Vision (主力) + xhttp (备用)(v0.2)
+* 协议: TCP-Vision (主力) + xhttp (备用)(v0.2+)
  
 ### ✨ 核心功能
 
@@ -49,7 +49,7 @@
 **3. 📱 客户端兼容性 (重要)**
 (本脚本部署了两种最新协议，请确保你的客户端支持)：
  * 节点 1 (Vision): 需要 Xray-core v1.8.0+ (如 v2rayN 6.x+, Shadowrocket 最新版)。
- * 节点 2 (xhttp): 极新协议 (Xray v1.8.24+)，目前仅少数最新版客户端（如 v2rayN 预发行版、Nekobox 最新版）支持。
+ * 节点 2 (xhttp): 极新协议 (Xray v1.8.24+)，目前仅少数最新版客户端（如 v2rayN 预发行版、Nekobox 最新版）支持。（v0.2+）
 
 ### 🛠️ 安装指南
 环境要求:
@@ -90,7 +90,7 @@ An advanced, fully automated deployment script for Xray, featuring VLESS + Reali
 
 * Version: v0.1
 * Core: Xray-core (VLESS + Reality)  
-* Protocols: TCP-Vision (Primary) + xhttp (Secondary/Fallback)（v0.2)
+* Protocols: TCP-Vision (Primary) + xhttp (Secondary/Fallback)（v0.2+)
 
 ### ✨ Key Features
  * ⚡️ Cutting-edge Protocol: Deploys VLESS + Reality + XTLS-Vision flow control.
@@ -124,7 +124,7 @@ An advanced, fully automated deployment script for Xray, featuring VLESS + Reali
 **3. 📱 Client Compatibility (Important)**
 This script deploys two cutting-edge protocols. Ensure your client supports them:
 * **Node 1 (Vision)**: Requires **Xray-core v1.8.0+** (e.g., v2rayN 6.x+, latest Shadowrocket).
-* **Node 2 (xhttp)**: **Experimental/New Protocol** (Xray v1.8.24+). Only supported by very recent clients (e.g., v2rayN Pre-release, latest Nekobox).
+* **Node 2 (xhttp)**: **Experimental/New Protocol** (Xray v1.8.24+). Only supported by very recent clients (e.g., v2rayN Pre-release, latest Nekobox).(v0.2+)
 
 ### 🛠️ Installation Guide
 
