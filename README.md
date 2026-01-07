@@ -1,7 +1,7 @@
 # 🚀 Xray Auto Deployment Script (VLESS+Reality-Vision/xhttp)
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![System](https://img.shields.io/badge/System-Debian%20%7C%20Ubuntu-orange)](https://github.com/accforeve/Xray-Auto)
+[![System](https://img.shields.io/badge/System-Debian%20%7C%20Ubuntu-orange)](https://github.com/realfanzhongyan/Xray-Auto)
 
 [中文文档](#chinese) | [English Description](#english)
 
@@ -163,5 +163,5 @@ This script is for educational and technical research purposes only. The author 
 
 本脚本仅供学习与技术研究使用。作者不对因使用本脚本造成的服务器数据丢失、IP 被封锁或其他后果负责。请遵守当地法律法规。
 
-[Project maintained by accforeve](https://github.com/accforeve)
+[Project maintained by realfanzhongyan](https://github.com/realfanzhongyan)
 
