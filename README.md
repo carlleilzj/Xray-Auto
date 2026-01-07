@@ -49,7 +49,7 @@
 **3. 📱 客户端兼容性 (重要)**
 (本脚本部署了两种最新协议，请确保你的客户端支持)：
  * 节点 1 (Vision): 需要 Xray-core v1.8.0+ (如 v2rayN 6.x+, Shadowrocket 最新版)。
- * 节点 2 (xhttp): 极新协议 (Xray v1.8.24+)，目前仅少数最新版客户端（如 v2rayN 预发行版、Nekobox 最新版）支持。（v0.2+）
+ * 节点 2 (xhttp): 极新协议 (Xray v1.8.24+)，目前仅少数最新版客户端（如 v2rayN 预发行版、Shadowrocket、Nekobox 最新版）支持。
 
 ### 🛠️ 安装指南
 环境要求:
@@ -120,7 +120,7 @@ An advanced, fully automated deployment script for Xray, featuring VLESS + Reali
 **3. 📱 Client Compatibility (Important)**
 This script deploys two cutting-edge protocols. Ensure your client supports them:
 * **Node 1 (Vision)**: Requires **Xray-core v1.8.0+** (e.g., v2rayN 6.x+, latest Shadowrocket).
-* **Node 2 (xhttp)**: **Experimental/New Protocol** (Xray v1.8.24+). Only supported by very recent clients (e.g., v2rayN Pre-release, latest Nekobox).(v0.2+)
+* **Node 2 (xhttp)**: **Experimental/New Protocol** (Xray v1.8.24+). Only supported by very recent clients (e.g., v2rayN Pre-release, Shadowrocket, latest Nekobox).
 
 ### 🛠️ Installation Guide
 
