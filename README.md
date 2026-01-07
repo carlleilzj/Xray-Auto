@@ -39,7 +39,7 @@
 | 暴力重置防火墙 | 脚本会执行 iptables -F 清空所有规则。 | 如果你的服务器上有 Docker、K8s 或自定义的路由转发，网络将立即瘫痪。 |
 | 默认拒绝策略 | 仅放行 SSH、443、8443 端口，其余入站流量全部 DROP。 | 如果你修改了 SSH 端口且脚本未检测到，或者使用 VNC/Web面板，你将被锁在服务器外。 |
 | 端口强占 | 强制占用 443 和 8443 端口。 | 如果本机已运行 Nginx/Apache/Caddy 占用 443，Xray 将启动失败且原网站无法访问。 |
-| 流量限制（BT） | 脚本内置路由规则，强制阻断 BitTorrent 协议。 | 无法使用此节点进行 BT/P2P 下载。（这是为了防止 DMCA 投诉导致 VPS 被商家封锁）。 |
+| 流量限制（BT） | 脚本内置路由规则，强制阻断 BitTorrent 协议。 | 无法使用此节点进行 BT/P2P 下载。（防止 DMCA 投诉导致 VPS 被商家封锁）。 |
 
 **2. ⚙️ 系统环境风险 (中等)**
  * 强制杀进程：脚本运行初期会执行 killall apt，如果后台正在进行系统更新，可能导致 dpkg 数据库损坏。
@@ -159,7 +159,39 @@ After installation is complete, the script will automatically output connection 
 * **QR Code**: Scan with a mobile phone to connect directly.
 
 ### ⚠️ 免责声明 | Disclaimer
-This project (including the script and related documentation) is open-sourced under the **GNU General Public License v3.0 (GPL-3.0)**. By downloading, installing, or using this project, you acknowledge that you have read and agreed to the following terms.
+本项目（脚本及相关文档）依据 [**GNU General Public License v3.0 (GPL-3.0)**](https://github.com/realfanzhongyan/Xray-Auto/blob/main/LICENSE) 许可证开源。在使用本项目之前，请务必仔细阅读以下条款。一旦您下载、安装或使用本项目，即表示您已阅读并同意本免责声明的全部内容。
+
+### 1. 软件及其衍生品仅仅用于技术研究
+本项目及其包含的脚本（`install.sh`）仅供网络安全技术研究、服务器性能测试及计算机网络教学之用。
+- 开发者**不鼓励、不支持也不协助**任何违反当地法律法规的行为。
+- 用户在使用本项目时，必须严格遵守服务器所在地及用户所在地的所有法律法规。
+
+### 2. "AS IS" (按原样) 条款与无担保声明
+根据 GPL-3.0 协议第 15 和 16 条款：
+- 本项目**按“原样”提供**，不提供任何明示或暗示的保证，包括但不限于对适销性、特定用途适用性和非侵权性的保证。
+- 开发者不对因使用本脚本而导致的任何直接、间接、偶然、特殊或后果性的损害（包括但不限于数据丢失、业务中断、服务器被封锁或系统崩溃）承担任何责任。
+
+### 3. 系统修改与风险提示
+- 本脚本在运行时需要 root 权限，并会对系统进行深层修改，包括但不限于：
+- 修改系统时区与内核参数（开启 BBR、配置虚拟内存 Swap）。
+- 安装第三方依赖软件包与系统服务。
+- 修改防火墙规则与 SSH 服务配置。
+**用户需自行承担运行脚本可能带来的系统不稳定性或配置冲突风险。** 建议在纯净的系统环境下运行，并在操作前做好数据备份。
+
+### 4. 第三方服务与网络内容
+- 本脚本会从第三方源（如 GitHub、Loyalsoldier 等）下载核心组件和规则文件。开发者无法保证这些第三方服务的持续可用性或内容的安全性。
+- 本脚本仅作为网络通讯工具，不提供任何具体的网络服务。开发者不对用户通过本工具传输、访问的任何内容的合法性、真实性或安全性负责。
+
+### 5. 滥用后果
+若用户将本项目用于非法用途（包括但不限于规避网络审查、进行网络攻击、传播违法信息等），由此产生的一切法律后果与责任均由用户自行承担，与本项目开发者无关。
+
+---
+*如果您不同意上述任何条款，请立即停止下载、安装或使用本项目。*
+
+
+
+### ⚠️ 免责声明 | Disclaimer
+This project (including the script and related documentation) is open-sourced under the [**GNU General Public License v3.0 (GPL-3.0)**](https://github.com/realfanzhongyan/Xray-Auto/blob/main/LICENSE). By downloading, installing, or using this project, you acknowledge that you have read and agreed to the following terms.
 
 ### 1. Educational and Research Purpose Only
 This project is intended strictly for **network security research, server performance testing, and computer networking education**.
@@ -188,35 +220,6 @@ Any legal consequences or liabilities arising from the illegal use of this proje
 ---
 *If you do not agree to any of the above terms, please stop downloading, installing, or using this project immediately.*
 
-
-本项目（脚本及相关文档）依据 **GNU General Public License v3.0 (GPL-3.0)** 许可证开源。在使用本项目之前，请务必仔细阅读以下条款。一旦您下载、安装或使用本项目，即表示您已阅读并同意本免责声明的全部内容。
-
-### 1. 软件及其衍生品仅仅用于技术研究
-本项目及其包含的脚本（`install.sh`）仅供网络安全技术研究、服务器性能测试及计算机网络教学之用。
-- 开发者**不鼓励、不支持也不协助**任何违反当地法律法规的行为。
-- 用户在使用本项目时，必须严格遵守服务器所在地及用户所在地的所有法律法规。
-
-### 2. "AS IS" (按原样) 条款与无担保声明
-根据 GPL-3.0 协议第 15 和 16 条款：
-- 本项目**按“原样”提供**，不提供任何明示或暗示的保证，包括但不限于对适销性、特定用途适用性和非侵权性的保证。
-- 开发者不对因使用本脚本而导致的任何直接、间接、偶然、特殊或后果性的损害（包括但不限于数据丢失、业务中断、服务器被封锁或系统崩溃）承担任何责任。
-
-### 3. 系统修改与风险提示
-- 本脚本在运行时需要 root 权限，并会对系统进行深层修改，包括但不限于：
-- 修改系统时区与内核参数（开启 BBR、配置虚拟内存 Swap）。
-- 安装第三方依赖软件包与系统服务。
-- 修改防火墙规则与 SSH 服务配置。
-**用户需自行承担运行脚本可能带来的系统不稳定性或配置冲突风险。** 建议在纯净的系统环境下运行，并在操作前做好数据备份。
-
-### 4. 第三方服务与网络内容
-- 本脚本会从第三方源（如 GitHub、Loyalsoldier 等）下载核心组件和规则文件。开发者无法保证这些第三方服务的持续可用性或内容的安全性。
-- 本脚本仅作为网络通讯工具，不提供任何具体的网络服务。开发者不对用户通过本工具传输、访问的任何内容的合法性、真实性或安全性负责。
-
-### 5. 滥用后果
-若用户将本项目用于非法用途（包括但不限于规避网络审查、进行网络攻击、传播违法信息等），由此产生的一切法律后果与责任均由用户自行承担，与本项目开发者无关。
-
----
-*如果您不同意上述任何条款，请立即停止下载、安装或使用本项目。*
 
 
 [Project maintained by realfanzhongyan](https://github.com/realfanzhongyan)
