@@ -322,47 +322,73 @@ systemctl enable xray && systemctl restart xray
 
 cat > /usr/local/bin/info <<EOF
 #!/bin/bash
-RED="\033[31m"; GREEN="\033[32m"; YELLOW="\033[33m"; BLUE="\033[36m"; PLAIN="\033[0m"
+# 颜色定义
+RED="\033[31m"
+GREEN="\033[32m"
+YELLOW="\033[33m"
+BLUE="\033[36m" 
+WHITE="\033[1;37m"
+GREY="\033[1;30m"
+PLAIN="\033[0m"
+
+# 变量获取
 UUID="${UUID}"; PUBLIC_KEY="${PUBLIC_KEY}"; SHORT_ID="${SHORT_ID}"; SNI_HOST="${SNI_HOST}"
 XHTTP_PATH="${XHTTP_PATH}"; SSH_PORT="${SSH_PORT}"
 PORT_VISION="${PORT_VISION}"; PORT_XHTTP="${PORT_XHTTP}"
 
+# 获取 IP
 IPV4=\$(curl -s4m 5 https://1.1.1.1/cdn-cgi/trace | grep "ip=" | cut -d= -f2)
-if [ -z "\$IPV4" ]; then IPV4=\$(curl -s4m 5 https://api.ipify.org); fi
+[ -z "\$IPV4" ] && IPV4=\$(curl -s4m 5 https://api.ipify.org)
 HOST_TAG=\$(hostname | tr ' ' '.')
 [ -z "\$HOST_TAG" ] && HOST_TAG="XrayServer"
 
+# 生成链接
 LINK_VISION="vless://\${UUID}@\${IPV4}:\${PORT_VISION}?security=reality&encryption=none&pbk=\${PUBLIC_KEY}&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=\${SNI_HOST}&sid=\${SHORT_ID}#\${HOST_TAG}_Vision"
 LINK_XHTTP="vless://\${UUID}@\${IPV4}:\${PORT_XHTTP}?security=reality&encryption=none&pbk=\${PUBLIC_KEY}&headerType=none&fp=chrome&type=xhttp&path=\${XHTTP_PATH}&sni=\${SNI_HOST}&sid=\${SHORT_ID}#\${HOST_TAG}_xhttp"
+
 clear
-echo -e "\${GREEN}Xray 配置信息 (Xray Configuration)\${PLAIN}"
-echo "=========================================================="
-echo -e "\${YELLOW}代理配置:\${PLAIN}"
-echo "----------------------------------------------------------"
-echo -e "  地址 (IP)       : \${BLUE}\${IPV4}\${PLAIN}"
-echo -e "  优选 SNI        : \${YELLOW}\${SNI_HOST}\${PLAIN}"
-echo -e "  UUID            : \${BLUE}\${UUID}\${PLAIN}"
-echo -e "  Public Key      : \${BLUE}\${PUBLIC_KEY}\${PLAIN}"
-echo "----------------------------------------------------------"
-# 使用 printf 强行对齐
-printf "  节点 1 %-10s : 端口: \${BLUE}%-6s\${PLAIN} 协议: \${BLUE}TCP/Reality\${PLAIN}\n" "(Vision)" "\${PORT_VISION}"
-printf "  节点 2 %-10s : 端口: \${BLUE}%-6s\${PLAIN} 协议: \${BLUE}xhttp/Reality\${PLAIN} 路径: \${BLUE}\${XHTTP_PATH}\${PLAIN}\n" "(xhttp)" "\${PORT_XHTTP}"
-echo "----------------------------------------------------------"
-echo -e "  管理端口 (SSH)  : \${BLUE}\${SSH_PORT}\${PLAIN}"
-echo "----------------------------------------------------------"
-echo -e "\${YELLOW}👇 节点1 链接 (Vision):\${PLAIN}"
-echo -e "\${GREEN}\${LINK_VISION}\${PLAIN}"
+# --- UI 渲染 ---
+echo -e "\${GREEN}● Xray 配置面板 (v0.3)\${PLAIN}"
+echo -e "\${GREY}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\${PLAIN}"
+
+# 1. 基础信息区块
+echo -e "\${WHITE}┌─ [服务器状态] ──────────────────────────────────┐\${PLAIN}"
+printf "\${WHITE}│  %-14s\${PLAIN} : \${BLUE}%-28s\${PLAIN} \${WHITE}│\${PLAIN}\n" "IP 地址" "\${IPV4}"
+printf "\${WHITE}│  %-14s\${PLAIN} : \${BLUE}%-28s\${PLAIN} \${WHITE}│\${PLAIN}\n" "SSH 端口" "\${SSH_PORT}"
+printf "\${WHITE}│  %-14s\${PLAIN} : \${YELLOW}%-28s\${PLAIN} \${WHITE}│\${PLAIN}\n" "优选 SNI" "\${SNI_HOST}"
+echo -e "\${WHITE}└─────────────────────────────────────────────────┘\${PLAIN}"
 echo ""
-echo -e "\${YELLOW}👇 节点2 链接 (xhttp):\${PLAIN}"
-echo -e "\${GREEN}\${LINK_XHTTP}\${PLAIN}"
-echo "----------------------------------------------------------"
-echo -e "\${YELLOW}👇 节点1 二维码 (Vision):\${PLAIN}"
+
+# 2. 节点详情区块 (使用 printf 对齐)
+echo -e "\${WHITE}┌─ [节点配置] ────────────────────────────────────┐\${PLAIN}"
+printf "\${WHITE}│  %-10s \${GREY}|\${PLAIN} %-7s \${GREY}|\${PLAIN} %-24s \${WHITE}│\${PLAIN}\n" "类型" "端口" "协议细节"
+echo -e "\${GREY}├─────────────┼─────────┼──────────────────────────┤\${PLAIN}"
+printf "\${WHITE}│  %-10s \${GREY}|\${PLAIN} \${BLUE}%-7s\${PLAIN} \${GREY}|\${PLAIN} %-24s \${WHITE}│\${PLAIN}\n" "Vision" "\${PORT_VISION}" "TCP / XTLS-Vision"
+printf "\${WHITE}│  %-10s \${GREY}|\${PLAIN} \${BLUE}%-7s\${PLAIN} \${GREY}|\${PLAIN} %-24s \${WHITE}│\${PLAIN}\n" "xhttp" "\${PORT_XHTTP}" "xhttp / Path: \${XHTTP_PATH}"
+echo -e "\${WHITE}└─────────────────────────────────────────────────┘\${PLAIN}"
+echo ""
+
+# 3. 核心凭证 (UUID/Key) 
+echo -e "\${WHITE}┌─ [核心凭证] (客户端填写的关键信息) ─────────────┐\${PLAIN}"
+echo -e "\${WHITE}│  UUID       : \${YELLOW}\${UUID}\${PLAIN}"
+echo -e "\${WHITE}│  Public Key : \${YELLOW}\${PUBLIC_KEY}\${PLAIN}"
+echo -e "\${WHITE}│  Short ID   : \${YELLOW}\${SHORT_ID}\${PLAIN}"
+echo -e "\${WHITE}└─────────────────────────────────────────────────┘\${PLAIN}"
+
+echo -e "\n\${WHITE}👇 快速导入链接 (双击选中复制) \${PLAIN}"
+echo -e "\${GREY}--------------------------------------------------\${PLAIN}"
+echo -e "\${GREEN}\${LINK_VISION}\${PLAIN}"
+echo -e "\n\${GREEN}\${LINK_XHTTP}\${PLAIN}"
+echo -e "\${GREY}--------------------------------------------------\${PLAIN}"
+
+# 4. 二维码部分
+echo -e "\n\${WHITE}📱 扫码添加 (Vision / xhttp)\${PLAIN}"
 qrencode -t ANSIUTF8 "\${LINK_VISION}"
 echo ""
-echo -e "\${YELLOW}👇 节点2 二维码 (xhttp):\${PLAIN}"
 qrencode -t ANSIUTF8 "\${LINK_XHTTP}"
 echo ""
 EOF
+
 chmod +x /usr/local/bin/info
 
 # 完成
