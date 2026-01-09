@@ -47,15 +47,6 @@ print_banner() {
 if [[ $EUID -ne 0 ]]; then echo -e "${RED}${ICON_ERR} Error: 请使用 root 权限运行!${PLAIN}"; exit 1; fi
 if [ ! -f /etc/debian_version ]; then echo -e "${RED}${ICON_ERR} 仅支持 Debian/Ubuntu 系统!${PLAIN}"; exit 1; fi
 
-pre_flight_check() {
-    if ! dpkg --audit >/dev/null 2>&1; then
-        echo -e "${YELLOW}${ICON_WARN} 检测到 apt 锁死或损坏，正在尝试自愈...${PLAIN}"
-        rm -f /var/lib/apt/lists/lock /var/cache/apt/archives/lock /var/lib/dpkg/lock*
-        dpkg --configure -a >/dev/null 2>&1
-        echo -e "${GREEN}${ICON_OK} 修复完成。${PLAIN}"
-    fi
-}
-
 check_net_stack() {
     HAS_V4=false; HAS_V6=false; CURL_OPT=""
     if curl -s4m 2 https://1.1.1.1 >/dev/null 2>&1; then HAS_V4=true; fi
