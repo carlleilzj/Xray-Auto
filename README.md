@@ -51,14 +51,11 @@ bash <(curl -sL https://github.com/ISFZY/Xray-Auto/raw/main/remove.sh)
 
 ### 🎮 常用命令
 安装完成后，直接在终端输入以下命令：
-
-* **`info`**
-    * 查看当前的 IP、端口、UUID、伪装域名等信息。
-    * 运行后输入 `y` 可在终端生成巨大的二维码供手机扫描。
-* **`mode`**
-    * 切换路由模式：
-        1.  **阻断国内流量 (Block CN)**: [默认/推荐] 禁止访问中国大陆 IP。
-        2.  **允许国内流量 (Allow CN)**: 允许访问国内 IP。
+| 指令 | 功能 | 说明 |
+| --- | --- | --- |
+| `info` | 查询Xray配置信息 | * 查看当前的 IP、端口、UUID、伪装域名等信息。* 运行后输入 `y` 可在终端生成巨大的二维码供手机扫描。|
+| `mode` | 切换路由模式 | 1. **阻断国内流量 (Block CN)**: [默认/推荐] 禁止访问中国大陆 IP。2. **允许国内流量 (Allow CN)**: 允许访问国内 IP。|
+| `net` | 切换网络 | 1. **IPv4 优先**: 推荐, 兼容性最好。2. **IPv6 优先**: 适合 IPv6 线路优秀的机器。3. **仅 IPv4**: 强制 Xray 只用 IPv4 。4. **仅 IPv6**: 强制 Xray 只用 IPv6。 |
 
 ### 📝 客户端配置参考
 | 参数 | 值 (示例) | 说明 |
@@ -116,17 +113,16 @@ To remove Xray and its associated configurations:
 bash <(curl -sL https://github.com/ISFZY/Xray-Auto/raw/main/remove.sh)
 
 ```
-
 ### 🎮 Commands
 After installation, you can use these shortcuts:
+Here is the English translation of the table you uploaded.
+Xray Management Commands
+| Command | Function | Description |
+|---|---|---|
+| 'info' | View Xray Config Info | • View current IP, Port, UUID, Camouflage Domain, etc.• After running, type y to generate a large QR code in the terminal for scanning with a mobile phone. |
+| 'mode' | Switch Routing Mode | 1. Block CN Traffic (Block CN): [Default/Recommended] Blocks access to Mainland China IPs.2. Allow CN Traffic (Allow CN): Allows access to Mainland China IPs. |
+| 'net' | Switch Network | 1. **IPv4 Priority**: Recommended, best compatibility. 2. **IPv6 Priority**: Suitable for servers with excellent IPv6 connections.3. **IPv4 Only**: Forces Xray to use IPv4 only.4. **IPv6 Only**: Forces Xray to use IPv6 only. |
 
-* **`info`**
-    * Display configuration details (UUID, Keys, Links).
-    * Type `y` when prompted to generate **QR Codes** for mobile scanning.
-* **`mode`**
-    * Switch routing rules:
-        1.  **Block CN (Default)**: Blocks traffic to Chinese IPs.
-        2.  **Allow CN**: Allows traffic to Chinese IPs.
 
 ### 📝 Client Configuration Reference
 | Parameter | Value (Example) | Note |
