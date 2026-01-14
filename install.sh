@@ -1111,14 +1111,13 @@ JAIL_FILE="/etc/fail2ban/jail.local"
 
 # 0. 启动即清屏
 clear
-
 if [ "$EUID" -ne 0 ]; then echo -e "${RED}请使用 sudo 运行此脚本！${PLAIN}"; exit 1; fi
 
 # --- 核心辅助函数 ---
 
 get_conf() {
     local key=$1
-    # 提取 value
+    # 提取 value (tr -d ' ' 仅适用于无空格的单值参数)
     grep "^${key}\s*=" "$JAIL_FILE" | awk -F'=' '{print $2}' | tr -d ' '
 }
 
@@ -1152,45 +1151,27 @@ get_status() {
 }
 
 # --- 校验函数 ---
-
-# 校验时间格式 (支持纯数字 或 10s/10m/10h/10d/1w)
 validate_time() {
-    local input=$1
-    if [[ "$input" =~ ^[0-9]+[smhdw]?$ ]]; then return 0; else return 1; fi
+    if [[ "$1" =~ ^[0-9]+[smhdw]?$ ]]; then return 0; else return 1; fi
 }
-
-# 校验纯数字
 validate_int() {
-    local input=$1
-    if [[ "$input" =~ ^[0-9]+$ ]]; then return 0; else return 1; fi
+    if [[ "$1" =~ ^[0-9]+$ ]]; then return 0; else return 1; fi
 }
 
 # --- 功能模块 ---
 
 change_param() {
-    local name=$1; local key=$2; local type=$3 # time or int
+    local name=$1; local key=$2; local type=$3
     local current=$(get_conf "$key")
-    
     echo -e "\n${BLUE}正在修改: ${name}${PLAIN}"
     echo -e "当前值: ${GREEN}${current}${PLAIN}"
-    if [ "$type" == "time" ]; then
-        echo -e "${GRAY}(格式说明: 纯数字=秒, 或加单位 s/m/h/d. 例: 30m, 1h, 7d)${PLAIN}"
-    else
-        echo -e "${GRAY}(格式说明: 仅允许输入纯数字)${PLAIN}"
-    fi
-
+    
     while true; do
         read -p "请输入新值 (留空取消): " new_val
         if [ -z "$new_val" ]; then echo "取消修改。"; read -n 1 -s -r; return; fi
-
-        # 执行校验
-        if [ "$type" == "time" ]; then
-            validate_time "$new_val" && break
-            echo -e "${RED}错误: 格式不正确！请使用如 600, 1h, 1d 等格式。${PLAIN}"
-        elif [ "$type" == "int" ]; then
-            validate_int "$new_val" && break
-            echo -e "${RED}错误: 必须输入纯数字！${PLAIN}"
-        fi
+        if [ "$type" == "time" ]; then validate_time "$new_val" && break; fi
+        if [ "$type" == "int" ]; then validate_int "$new_val" && break; fi
+        echo -e "${RED}格式错误，请重试。${PLAIN}"
     done
     
     set_conf "$key" "$new_val"
@@ -1200,21 +1181,11 @@ change_param() {
 toggle_service() {
     echo -e "\n${BLUE}--- 服务开关 ---${PLAIN}"
     if systemctl is-active fail2ban >/dev/null 2>&1; then
-        echo -e "当前状态: ${GREEN}运行中${PLAIN}"
         read -p "是否停止并禁用 Fail2ban? (y/n): " confirm
-        if [[ "$confirm" == "y" ]]; then
-            systemctl stop fail2ban
-            systemctl disable fail2ban
-            echo -e "${RED}服务已停止。${PLAIN}"
-        fi
+        if [[ "$confirm" == "y" ]]; then systemctl stop fail2ban; systemctl disable fail2ban; echo -e "${RED}服务已停止。${PLAIN}"; fi
     else
-        echo -e "当前状态: ${RED}已停止${PLAIN}"
         read -p "是否启用并启动 Fail2ban? (y/n): " confirm
-        if [[ "$confirm" == "y" ]]; then
-            systemctl enable fail2ban
-            systemctl start fail2ban
-            echo -e "${GREEN}服务已启动。${PLAIN}"
-        fi
+        if [[ "$confirm" == "y" ]]; then systemctl enable fail2ban; systemctl start fail2ban; echo -e "${GREEN}服务已启动。${PLAIN}"; fi
     fi
     read -n 1 -s -r -p "按任意键继续..."
 }
@@ -1223,26 +1194,34 @@ unban_ip() {
     echo -e "\n${BLUE}--- 手动解封 IP ---${PLAIN}"
     read -p "请输入 IP: " target_ip
     [ -z "$target_ip" ] && return
-    # 简单校验 IP 格式 (包含点和数字)
-    if [[ ! "$target_ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        echo -e "${RED}IP 格式看似不正确，跳过。${PLAIN}"; sleep 1; return
-    fi
     fail2ban-client set sshd unbanip "$target_ip"
     echo -e "${GREEN}指令已发送。${PLAIN}"
     read -n 1 -s -r -p "按任意键继续..."
 }
 
 add_whitelist() {
-    echo -e "\n${BLUE}--- 添加白名单 ---${PLAIN}"
-    read -p "输入 IP (回车自动添加当前IP): " input_ip
-    if [ -z "$input_ip" ]; then
-        input_ip=$(echo $SSH_CLIENT | awk '{print $1}')
-    fi
-    if [ -z "$input_ip" ]; then echo "无法获取 IP"; sleep 1; return; fi
+    echo -e "\n${BLUE}--- 添加白名单 (Whitelist Manager) ---${PLAIN}"
     
-    local old_line=$(grep "^ignoreip" "$JAIL_FILE")
-    if echo "$old_line" | grep -q "$input_ip"; then
-        echo -e "${YELLOW}已存在于白名单。${PLAIN}"; sleep 1; return
+    # 1. 获取并显示当前列表 (专门处理空格，不能用 get_conf)
+    # grep 提取行 -> awk 提取等号右边 -> sed 去除首尾空格
+    local current_list=$(grep "^ignoreip" "$JAIL_FILE" | awk -F'=' '{print $2}' | sed 's/^[ \t]*//;s/[ \t]*$//')
+    
+    echo -e "当前已放行 IP (Current List):"
+    echo -e "${YELLOW}${current_list:-无}${PLAIN}"
+    echo -e "---------------------------------------------------"
+    
+    # 2. 智能获取当前 IP
+    local current_ip=$(echo $SSH_CLIENT | awk '{print $1}')
+    
+    read -p "输入 IP (回车自动添加本机 ${current_ip}): " input_ip
+    
+    if [ -z "$input_ip" ]; then input_ip="$current_ip"; fi
+    if [ -z "$input_ip" ]; then echo -e "${RED}无法获取 IP，请手动输入。${PLAIN}"; sleep 1; return; fi
+    
+    # 3. 查重
+    # 使用 grep 检查 input_ip 是否已存在于 current_list 中
+    if echo "$current_list" | grep -Fq "$input_ip"; then
+        echo -e "${YELLOW}该 IP ($input_ip) 已存在于白名单中。${PLAIN}"; sleep 1; return
     fi
     
     sed -i "/^ignoreip/ s/$/ ${input_ip}/" "$JAIL_FILE"
@@ -1261,21 +1240,18 @@ menu_exponential() {
         local inc=$(get_conf "bantime.increment")
         local fac=$(get_conf "bantime.factor")
         local max=$(get_conf "bantime.maxtime")
-        
         [ "$inc" == "true" ] && S_INC="${GREEN}ON${PLAIN}" || S_INC="${RED}OFF${PLAIN}"
 
-        echo -e "${BLUE}=== 指数封禁设置 (Recidivism) ===${PLAIN}"
+        echo -e "${BLUE}=== 指数封禁设置 ===${PLAIN}"
         echo -e "  1. 递增模式开关   [${S_INC}]"
-        echo -e "  2. 修改增长系数   [${YELLOW}${fac}${PLAIN}] (Factor)"
-        echo -e "  3. 修改封禁上限   [${YELLOW}${max}${PLAIN}] (MaxTime)"
+        echo -e "  2. 修改增长系数   [${YELLOW}${fac}${PLAIN}]"
+        echo -e "  3. 修改封禁上限   [${YELLOW}${max}${PLAIN}]"
         echo -e "---------------------------------"
         echo -e "  0. 返回"
         echo -e ""
         read -p "请选择: " sc
         case "$sc" in
-            1) 
-                [ "$inc" == "true" ] && ns="false" || ns="true"
-                set_conf "bantime.increment" "$ns"; restart_f2b ;;
+            1) [ "$inc" == "true" ] && ns="false" || ns="true"; set_conf "bantime.increment" "$ns"; restart_f2b ;;
             2) change_param "增长系数" "bantime.factor" "int" ;;
             3) change_param "封禁上限" "bantime.maxtime" "time" ;;
             0) return ;;
@@ -1290,16 +1266,16 @@ while true; do
     VAL_MAX=$(get_conf "maxretry"); VAL_BAN=$(get_conf "bantime"); VAL_FIND=$(get_conf "findtime")
     
     echo -e "${BLUE}===================================================${PLAIN}"
-    echo -e "${BLUE}         Fail2ban 防火墙管理 (F2B Panel)           ${PLAIN}"
+    echo -e "${BLUE}         Fail2ban 防火墙管理 (F2B Panel)          ${PLAIN}"
     echo -e "${BLUE}===================================================${PLAIN}"
     echo -e "  状态: $(get_status)"
     echo -e "---------------------------------------------------"
-    echo -e "  1. 修改 最大重试次数 [${YELLOW}${VAL_MAX}${PLAIN}]  (MaxRetry)"
-    echo -e "  2. 修改 初始封禁时长 [${YELLOW}${VAL_BAN}${PLAIN}] (BanTime)"
-    echo -e "  3. 修改 监测时间窗口 [${YELLOW}${VAL_FIND}${PLAIN}] (FindTime)"
+    echo -e "  1. 修改 最大重试次数 [${YELLOW}${VAL_MAX}${PLAIN}]"
+    echo -e "  2. 修改 初始封禁时长 [${YELLOW}${VAL_BAN}${PLAIN}]"
+    echo -e "  3. 修改 监测时间窗口 [${YELLOW}${VAL_FIND}${PLAIN}]"
     echo -e "---------------------------------------------------"
-    echo -e "  4. ${GREEN}手动解封 IP${PLAIN}  (Unban)"
-    echo -e "  5. ${GREEN}添加白名单${PLAIN}   (Whitelist)"
+    echo -e "  4. ${GREEN}手动解封 IP${PLAIN} (Unban)"
+    echo -e "  5. ${GREEN}添加白名单${PLAIN}  (Whitelist)"
     echo -e "  6. 查看封禁日志 (Logs)"
     echo -e "  7. ${YELLOW}指数封禁设置${PLAIN} (Advanced) ->"
     echo -e "---------------------------------------------------"
