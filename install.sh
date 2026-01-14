@@ -1252,12 +1252,15 @@ view_logs() {
     if [ ! -f /var/log/fail2ban.log ]; then
         echo -e "${YELLOW}暂无日志文件 (服务可能刚安装)。${PLAIN}"
     else
-        # 1. 同时搜索 Ban 和 Unban
-        # 2. 取最后 20 条
-        # 3. 使用 sed 给关键字上色: Ban变红, Unban变绿
+        # [修复] 使用 awk 替代 sed
+        # awk 能完美识别 \033 颜色代码，不会出现乱码
+        # 先给 Unban 上绿色，再给 Ban 上红色
         grep -E "(Ban|Unban)" /var/log/fail2ban.log 2>/dev/null | tail -n 20 | \
-        sed -e "s/Ban/${RED}Ban${PLAIN}/g" \
-            -e "s/Unban/${GREEN}Unban${PLAIN}/g"
+        awk '{
+            gsub(/Unban/, "\033[32m&\033[0m");
+            gsub(/Ban/, "\033[31m&\033[0m");
+            print
+        }'
     fi
     
     echo -e "---------------------------------------------------"
