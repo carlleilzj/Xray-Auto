@@ -720,7 +720,7 @@ echo -e "[Service]\nLimitNOFILE=infinity\nLimitNPROC=infinity\nTasksMax=infinity
 # 四、脚本管理区 (Script Management Area)
 # ==================================================================
 
-# --- 1. Info 脚本 ---
+# --- 1. Info 脚本 (info) ---
 cat > /usr/local/bin/info << 'EOF'
 #!/bin/bash
 RED="\033[31m"; GREEN="\033[32m"; YELLOW="\033[33m"; BLUE="\033[36m"; PLAIN="\033[0m"
@@ -824,14 +824,14 @@ fi
 
 # 底部常用命令提示
 echo -e "\n------------------------------------------------------------------"
-echo -e " 常用工具: ${YELLOW}info${PLAIN}  (信息) | ${YELLOW}net${PLAIN} (网络)"
-echo -e " 运维命令: ${YELLOW}ports${PLAIN} (端口) | ${YELLOW}f2b${PLAIN} (防火墙) | ${YELLOW}journalctl -u xray -f${PLAIN} (日志)"
+echo -e " 常用工具: ${YELLOW}info${PLAIN}  (回显) | ${YELLOW}net${PLAIN} (网络) | ${YELLOW}swap${PLAIN} (虚拟内存)"
+echo -e " 运维命令: ${YELLOW}ports${PLAIN} (端口) | ${YELLOW}bbr${PLAIN} (内核) | ${YELLOW}f2b${PLAIN}  (防火墙) | ${YELLOW}journalctl -u xray -f${PLAIN} (日志)"
 echo -e "------------------------------------------------------------------"
 echo ""
 EOF
 chmod +x /usr/local/bin/info
 
-# --- 2. Net 脚本 ---
+# --- 2. Net 脚本 (net) ---
 cat > /usr/local/bin/net << 'EOF'
 #!/bin/bash
 RED="\033[31m"; GREEN="\033[32m"; YELLOW="\033[33m"; BLUE="\033[36m"; PLAIN="\033[0m"
@@ -945,7 +945,7 @@ done
 EOF
 chmod +x /usr/local/bin/net
 
-# --- 3. Ports 脚本 ---
+# --- 3. Ports 脚本 (ports) ---
 cat > /usr/local/bin/ports << 'EOF'
 #!/bin/bash
 RED="\033[31m"; GREEN="\033[32m"; YELLOW="\033[33m"; BLUE="\033[36m"; GRAY="\033[90m"; PLAIN="\033[0m"
@@ -1102,7 +1102,7 @@ done
 EOF
 chmod +x /usr/local/bin/ports
 
-# --- 4. Fail2ban 管理脚本 ---
+# --- 4. Fail2ban 管理脚本 (f2b) ---
 cat > /usr/local/bin/f2b << 'EOF'
 #!/bin/bash
 RED="\033[31m"; GREEN="\033[32m"; YELLOW="\033[33m"; BLUE="\033[36m"; GRAY="\033[90m"; PLAIN="\033[0m"
@@ -1323,6 +1323,312 @@ while true; do
 done
 EOF
 chmod +x /usr/local/bin/f2b
+
+# --- 5. BBR 管理脚本 (bbr) ---
+cat > /usr/local/bin/bbr << 'EOF'
+#!/bin/bash
+RED="\033[31m"; GREEN="\033[32m"; YELLOW="\033[33m"; BLUE="\033[36m"; GRAY="\033[90m"; PLAIN="\033[0m"
+
+SYSCTL_CONF="/etc/sysctl.d/99-xray-bbr.conf"
+
+# 0. 启动即清屏
+clear
+if [ "$EUID" -ne 0 ]; then echo -e "${RED}请使用 sudo 运行此脚本！${PLAIN}"; exit 1; fi
+
+# --- 核心函数 ---
+
+get_status() {
+    # 读取内核当前生效的配置
+    local cc=$(sysctl -n net.ipv4.tcp_congestion_control 2>/dev/null)
+    local qd=$(sysctl -n net.core.default_qdisc 2>/dev/null)
+    
+    # 判断 BBR 状态
+    if [[ "$cc" == "bbr" ]]; then
+        STATUS_BBR="${GREEN}已开启 (BBR)${PLAIN}"
+    else
+        STATUS_BBR="${YELLOW}未开启 ($cc)${PLAIN}"
+    fi
+
+    # 判断队列状态
+    if [[ "$qd" == "fq" ]]; then
+        STATUS_QDISC="${GREEN}FQ${PLAIN}"
+    else
+        STATUS_QDISC="${YELLOW}$qd${PLAIN}"
+    fi
+    
+    # 判断是否应用了额外优化 (检查配置文件是否存在且行数够多)
+    if [ -f "$SYSCTL_CONF" ] && [ $(wc -l < "$SYSCTL_CONF") -gt 5 ]; then
+        STATUS_OPT="${GREEN}已应用高性能参数${PLAIN}"
+    else
+        STATUS_OPT="${GRAY}默认参数${PLAIN}"
+    fi
+}
+
+apply_sysctl() {
+    echo -e "${INFO} 正在刷新内核参数..."
+    sysctl --system >/dev/null 2>&1
+    echo -e "${GREEN}设置已生效！${PLAIN}"
+    read -n 1 -s -r -p "按任意键继续..."
+}
+
+# --- 功能模块 ---
+
+enable_bbr() {
+    echo -e "\n${BLUE}正在开启 BBR 加速...${PLAIN}"
+    # 写入基础 BBR 配置
+    cat > "$SYSCTL_CONF" <<CONF
+# Xray Auto - BBR Base
+net.core.default_qdisc = fq
+net.ipv4.tcp_congestion_control = bbr
+CONF
+    apply_sysctl
+}
+
+disable_bbr() {
+    echo -e "\n${BLUE}正在关闭 BBR (恢复 CUBIC)...${PLAIN}"
+    # 恢复系统默认 (通常是 fq_codel + cubic)
+    cat > "$SYSCTL_CONF" <<CONF
+# Xray Auto - BBR Disabled
+net.core.default_qdisc = fq_codel
+net.ipv4.tcp_congestion_control = cubic
+CONF
+    apply_sysctl
+}
+
+# 高级优化：调整 TCP 窗口和缓冲区，适合大流量 VPS
+optimize_tcp() {
+    echo -e "\n${BLUE}正在应用 TCP 高性能参数 (Buffer Optimization)...${PLAIN}"
+    # 先保留当前的 CC 算法
+    local current_cc=$(sysctl -n net.ipv4.tcp_congestion_control)
+    local current_qd=$(sysctl -n net.core.default_qdisc)
+    
+    cat > "$SYSCTL_CONF" <<CONF
+# Xray Auto - Advanced TCP Optimization
+net.core.default_qdisc = $current_qd
+net.ipv4.tcp_congestion_control = $current_cc
+
+# TCP 缓冲区优化 (针对大带宽)
+net.core.rmem_max = 16777216
+net.core.wmem_max = 16777216
+net.ipv4.tcp_rmem = 4096 87380 16777216
+net.ipv4.tcp_wmem = 4096 65536 16777216
+
+# 低延迟与并发优化
+net.ipv4.tcp_low_latency = 1
+net.ipv4.tcp_slow_start_after_idle = 0
+net.ipv4.tcp_notsent_lowat = 16384
+net.ipv4.tcp_mtu_probing = 1
+net.ipv4.tcp_syncookies = 1
+CONF
+    apply_sysctl
+}
+
+reset_tcp() {
+    echo -e "\n${BLUE}正在重置为保守参数...${PLAIN}"
+    # 只保留最基础的 BBR/Cubic 设置，清除缓冲区优化
+    local current_cc=$(sysctl -n net.ipv4.tcp_congestion_control)
+    local current_qd=$(sysctl -n net.core.default_qdisc)
+    
+    cat > "$SYSCTL_CONF" <<CONF
+# Xray Auto - Base Config
+net.core.default_qdisc = $current_qd
+net.ipv4.tcp_congestion_control = $current_cc
+CONF
+    apply_sysctl
+}
+
+switch_qdisc() {
+    echo -e "\n${BLUE}切换队列调度算法 (Queue Discipline)${PLAIN}"
+    echo "1. FQ (Fair Queue) - BBR 的最佳拍档"
+    echo "2. FQ_CODEL - 通用性更好，适合 CUBIC"
+    read -p "请选择 [1-2]: " q_choice
+    
+    local target_q=""
+    case "$q_choice" in
+        1) target_q="fq" ;;
+        2) target_q="fq_codel" ;;
+        *) return ;;
+    esac
+    
+    # 替换配置文件中的 qdisc 设置
+    if grep -q "net.core.default_qdisc" "$SYSCTL_CONF"; then
+        sed -i "s/^net.core.default_qdisc.*/net.core.default_qdisc = $target_q/" "$SYSCTL_CONF"
+    else
+        echo "net.core.default_qdisc = $target_q" >> "$SYSCTL_CONF"
+    fi
+    apply_sysctl
+}
+
+# --- 主循环 ---
+
+while true; do
+    get_status
+    clear
+    echo -e "${BLUE}===================================================${PLAIN}"
+    echo -e "${BLUE}          内核与网络优化 (BBR Manager)            ${PLAIN}"
+    echo -e "${BLUE}===================================================${PLAIN}"
+    echo -e "  拥塞算法 : ${STATUS_BBR}"
+    echo -e "  队列调度 : ${STATUS_QDISC}"
+    echo -e "  高级优化 : ${STATUS_OPT}"
+    echo -e "---------------------------------------------------"
+    echo -e "  1. ${GREEN}开启 BBR${PLAIN} (Enable BBR + FQ)"
+    echo -e "  2. ${YELLOW}关闭 BBR${PLAIN} (Disable -> Cubic)"
+    echo -e "---------------------------------------------------"
+    echo -e "  3. 应用 TCP 大窗口优化 (Boost Throughput)"
+    echo -e "  4. 重置 TCP 缓冲区参数 (Reset to Default)"
+    echo -e "  5. 切换队列算法 (FQ / FQ_CODEL)"
+    echo -e "---------------------------------------------------"
+    echo -e "  0. 退出 (Exit)"
+    echo -e ""
+    read -p "请输入选项 [0-5]: " choice
+
+    case "$choice" in
+        1) enable_bbr ;;
+        2) disable_bbr ;;
+        3) optimize_tcp ;;
+        4) reset_tcp ;;
+        5) switch_qdisc ;;
+        0) clear; exit 0 ;;
+        *) ;;
+    esac
+done
+EOF
+chmod +x /usr/local/bin/bbr
+
+# --- 6. Swap 管理脚本 (swap) ---
+cat > /usr/local/bin/swap << 'EOF'
+#!/bin/bash
+RED="\033[31m"; GREEN="\033[32m"; YELLOW="\033[33m"; BLUE="\033[36m"; GRAY="\033[90m"; PLAIN="\033[0m"
+
+SWAP_FILE="/swapfile"
+SYSCTL_CONF="/etc/sysctl.d/99-xray-swap.conf"
+
+# 0. 启动即清屏
+clear
+if [ "$EUID" -ne 0 ]; then echo -e "${RED}请使用 sudo 运行此脚本！${PLAIN}"; exit 1; fi
+
+# --- 核心函数 ---
+
+get_status() {
+    # 1. 检查 Swap 状态
+    if grep -q "$SWAP_FILE" /proc/swaps; then
+        # 获取可读的大小 (如 1.0G, 512M)
+        local size=$(free -h | grep -i Swap | awk '{print $2}')
+        STATUS_SWAP="${GREEN}运行中 ($size)${PLAIN}"
+    else
+        STATUS_SWAP="${RED}未启用${PLAIN}"
+    fi
+
+    # 2. 检查 Swappiness (倾向值)
+    local val=$(cat /proc/sys/vm/swappiness 2>/dev/null)
+    STATUS_VAL="${YELLOW}${val:-60}${PLAIN}"
+}
+
+# --- 功能模块 ---
+
+set_swap_size() {
+    echo -e "\n${BLUE}设置 Swap 容量${PLAIN}"
+    echo -e "提示: 内存 <= 2G 建议设为 1024 (1GB) 或 2048 (2GB)"
+    echo -e "当前可用磁盘空间: $(df -h / | awk 'NR==2 {print $4}')"
+    
+    while true; do
+        read -p "请输入新的大小 (单位 MB, 纯数字, 输入 0 取消): " size_mb
+        if [[ ! "$size_mb" =~ ^[0-9]+$ ]]; then echo "请输入数字！"; continue; fi
+        if [ "$size_mb" -eq 0 ]; then return; fi
+        break
+    done
+
+    echo -e "${INFO} 正在停止旧 Swap (可能需要几秒钟)..."
+    swapoff "$SWAP_FILE" 2>/dev/null
+    rm -f "$SWAP_FILE"
+    
+    # 清理 fstab 旧记录
+    sed -i "\|$SWAP_FILE|d" /etc/fstab
+
+    echo -e "${INFO} 正在创建 ${size_mb}MB Swap 文件..."
+    # 优先用 fallocate (快)，失败则用 dd (兼容性好)
+    if ! fallocate -l "${size_mb}M" "$SWAP_FILE" 2>/dev/null; then
+        dd if=/dev/zero of="$SWAP_FILE" bs=1M count="$size_mb" status=progress
+    fi
+
+    chmod 600 "$SWAP_FILE"
+    mkswap "$SWAP_FILE" >/dev/null
+    swapon "$SWAP_FILE"
+
+    # 写入 fstab 实现开机自启
+    echo "$SWAP_FILE none swap sw 0 0" >> /etc/fstab
+
+    echo -e "${GREEN}设置成功！当前 Swap: ${size_mb}MB${PLAIN}"
+    read -n 1 -s -r -p "按任意键继续..."
+}
+
+disable_swap() {
+    echo -e "\n${BLUE}正在关闭并删除 Swap...${PLAIN}"
+    swapoff "$SWAP_FILE" 2>/dev/null
+    rm -f "$SWAP_FILE"
+    sed -i "\|$SWAP_FILE|d" /etc/fstab
+    
+    echo -e "${GREEN}Swap 已彻底移除。${PLAIN}"
+    read -n 1 -s -r -p "按任意键继续..."
+}
+
+change_swappiness() {
+    echo -e "\n${BLUE}修改 Swappiness (内存倾向值)${PLAIN}"
+    echo -e "说明: 范围 0-100。"
+    echo -e "  - ${YELLOW}0${PLAIN}   : 尽量死磕物理内存，不到万不得已不用 Swap (适合高性能)"
+    echo -e "  - ${YELLOW}10${PLAIN}  : 推荐值，兼顾性能与防爆内存 (VPS 常用)"
+    echo -e "  - ${YELLOW}60${PLAIN}  : 系统默认，比较积极地使用 Swap"
+    echo -e "  - ${YELLOW}100${PLAIN} : 疯狂使用 Swap"
+    
+    read -p "请输入数值 [0-100]: " val
+    if [[ ! "$val" =~ ^[0-9]+$ ]] || [ "$val" -lt 0 ] || [ "$val" -gt 100 ]; then
+        echo -e "${RED}输入无效！${PLAIN}"; sleep 1; return
+    fi
+
+    # 1. 临时生效
+    sysctl -w vm.swappiness=$val >/dev/null
+
+    # 2. 永久生效
+    if [ ! -f "$SYSCTL_CONF" ]; then touch "$SYSCTL_CONF"; fi
+    # 清理旧配置
+    sed -i "/vm.swappiness/d" "$SYSCTL_CONF"
+    # 写入新配置
+    echo "vm.swappiness=$val" >> "$SYSCTL_CONF"
+    
+    echo -e "${GREEN}修改成功！当前 Swappiness: $val${PLAIN}"
+    read -n 1 -s -r -p "按任意键继续..."
+}
+
+# --- 主菜单 ---
+
+while true; do
+    get_status
+    clear
+    echo -e "${BLUE}===================================================${PLAIN}"
+    echo -e "${BLUE}          虚拟内存管理 (Swap Manager)             ${PLAIN}"
+    echo -e "${BLUE}===================================================${PLAIN}"
+    echo -e "  当前状态 : ${STATUS_SWAP}"
+    echo -e "  内存倾向 : ${STATUS_VAL} (Swappiness)"
+    echo -e "---------------------------------------------------"
+    echo -e "  1. ${GREEN}创建/修改 Swap${PLAIN} (Set Size)"
+    echo -e "  2. ${RED}关闭/删除 Swap${PLAIN} (Disable)"
+    echo -e "---------------------------------------------------"
+    echo -e "  3. 修改 Swappiness 参数 (0-100)"
+    echo -e "---------------------------------------------------"
+    echo -e "  0. 退出 (Exit)"
+    echo -e ""
+    read -p "请输入选项 [0-3]: " choice
+
+    case "$choice" in
+        1) set_swap_size ;;
+        2) disable_swap ;;
+        3) change_swappiness ;;
+        0) clear; exit 0 ;;
+        *) ;;
+    esac
+done
+EOF
+chmod +x /usr/local/bin/swap
 
 # ==================================================================
 # 五、服务启动与收尾 (Service Start & Finalize)
