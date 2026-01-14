@@ -1117,7 +1117,7 @@ if [ "$EUID" -ne 0 ]; then echo -e "${RED}请使用 sudo 运行此脚本！${PLA
 
 get_conf() {
     local key=$1
-    # 提取 value (tr -d ' ' 仅适用于无空格的单值参数)
+    # 提取 value
     grep "^${key}\s*=" "$JAIL_FILE" | awk -F'=' '{print $2}' | tr -d ' '
 }
 
@@ -1191,37 +1191,52 @@ toggle_service() {
 }
 
 unban_ip() {
-    echo -e "\n${BLUE}--- 手动解封 IP ---${PLAIN}"
-    read -p "请输入 IP: " target_ip
+    echo -e "\n${BLUE}--- 手动解封 IP (Unban Manager) ---${PLAIN}"
+    
+    # 获取被封禁列表
+    # 原始输出包含 "Banned IP list: IP1 IP2 ...", 我们提取冒号后面的部分
+    local banned_list=$(fail2ban-client status sshd 2>/dev/null | grep "Banned IP list" | awk -F':' '{print $2}' | sed 's/^[ \t]*//')
+    
+    # 如果列表为空或全是空格
+    if [ -z "$banned_list" ] || [ "$banned_list" == " " ]; then
+        banned_list="无 (None)"
+    fi
+
+    echo -e "当前被封禁 IP (Banned List):"
+    echo -e "${RED}${banned_list}${PLAIN}"
+    echo -e "---------------------------------------------------"
+    
+    read -p "请输入要解封的 IP (留空取消): " target_ip
     [ -z "$target_ip" ] && return
+    
     fail2ban-client set sshd unbanip "$target_ip"
-    echo -e "${GREEN}指令已发送。${PLAIN}"
+    
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}指令已发送。${PLAIN}"
+    else
+        echo -e "${RED}操作失败 (可能是服务未运行或 IP 未被封禁)。${PLAIN}"
+    fi
     read -n 1 -s -r -p "按任意键继续..."
 }
 
 add_whitelist() {
     echo -e "\n${BLUE}--- 添加白名单 (Whitelist Manager) ---${PLAIN}"
     
-    # 1. 获取并显示当前列表 (专门处理空格，不能用 get_conf)
-    # grep 提取行 -> awk 提取等号右边 -> sed 去除首尾空格
+    # 获取白名单列表
     local current_list=$(grep "^ignoreip" "$JAIL_FILE" | awk -F'=' '{print $2}' | sed 's/^[ \t]*//;s/[ \t]*$//')
     
     echo -e "当前已放行 IP (Current List):"
     echo -e "${YELLOW}${current_list:-无}${PLAIN}"
     echo -e "---------------------------------------------------"
     
-    # 2. 智能获取当前 IP
     local current_ip=$(echo $SSH_CLIENT | awk '{print $1}')
-    
     read -p "输入 IP (回车自动添加本机 ${current_ip}): " input_ip
     
     if [ -z "$input_ip" ]; then input_ip="$current_ip"; fi
-    if [ -z "$input_ip" ]; then echo -e "${RED}无法获取 IP，请手动输入。${PLAIN}"; sleep 1; return; fi
+    if [ -z "$input_ip" ]; then echo -e "${RED}无法获取 IP。${PLAIN}"; sleep 1; return; fi
     
-    # 3. 查重
-    # 使用 grep 检查 input_ip 是否已存在于 current_list 中
     if echo "$current_list" | grep -Fq "$input_ip"; then
-        echo -e "${YELLOW}该 IP ($input_ip) 已存在于白名单中。${PLAIN}"; sleep 1; return
+        echo -e "${YELLOW}该 IP 已存在。${PLAIN}"; sleep 1; return
     fi
     
     sed -i "/^ignoreip/ s/$/ ${input_ip}/" "$JAIL_FILE"
@@ -1274,8 +1289,8 @@ while true; do
     echo -e "  2. 修改 初始封禁时长 [${YELLOW}${VAL_BAN}${PLAIN}]"
     echo -e "  3. 修改 监测时间窗口 [${YELLOW}${VAL_FIND}${PLAIN}]"
     echo -e "---------------------------------------------------"
-    echo -e "  4. ${GREEN}手动解封 IP${PLAIN} (Unban)"
-    echo -e "  5. ${GREEN}添加白名单${PLAIN}  (Whitelist)"
+    echo -e "  4. ${GREEN}手动解封 IP${PLAIN}  (Unban)"
+    echo -e "  5. ${GREEN}添加白名单${PLAIN}   (Whitelist)"
     echo -e "  6. 查看封禁日志 (Logs)"
     echo -e "  7. ${YELLOW}指数封禁设置${PLAIN} (Advanced) ->"
     echo -e "---------------------------------------------------"
