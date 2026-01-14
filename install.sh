@@ -1252,13 +1252,24 @@ view_logs() {
     if [ ! -f /var/log/fail2ban.log ]; then
         echo -e "${YELLOW}暂无日志文件 (服务可能刚安装)。${PLAIN}"
     else
-        # [修复] 使用 awk 替代 sed
-        # awk 能完美识别 \033 颜色代码，不会出现乱码
-        # 先给 Unban 上绿色，再给 Ban 上红色
+        # [核心优化] 使用 awk 进行格式化对齐
+        # 1. sprintf("%9s", $4): 将第4列(PID)强制设为9个字符宽，并右对齐。
+        #    这样 [123]: 和 [12345]: 中的冒号就会上下垂直对齐。
+        # 2. gsub: 给关键词上色。
+        
         grep -E "(Ban|Unban)" /var/log/fail2ban.log 2>/dev/null | tail -n 20 | \
         awk '{
+            # 1. 颜色高亮 (先上色，避免影响对齐逻辑)
             gsub(/Unban/, "\033[32m&\033[0m");
             gsub(/Ban/, "\033[31m&\033[0m");
+            
+            # 2. 对齐 PID 字段 (识别类似 [12345]: 的列)
+            if ($4 ~ /^\[.*\]:$/) {
+                # 右对齐，宽度设为 9 (根据您的截图，PID通常5-6位，9足够容纳)
+                $4 = sprintf("%9s", $4)
+            }
+            
+            # 3. 打印重组后的行 (awk 会自动用整齐的空格连接各列)
             print
         }'
     fi
