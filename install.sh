@@ -1000,28 +1000,52 @@ apply_strategy() {
     read -n 1 -s -r -p "按任意键继续..."
 }
 
-# 状态显示
+# 4. 状态显示
 get_current_status() {
+    # 1. 获取 Xray 策略
     if [ -f "$CONFIG_FILE" ]; then CURRENT_STRATEGY=$(jq -r '.routing.domainStrategy // "Unknown"' "$CONFIG_FILE"); else CURRENT_STRATEGY="Error"; fi
     
-    # 检查内核参数
-    if [ "$(sysctl -n net.ipv6.conf.all.disable_ipv6 2>/dev/null)" -eq 1 ]; then
+    # 2. 获取内核 IPv6 状态 (0=开启, 1=禁用)
+    local sys_v6_val=$(sysctl -n net.ipv6.conf.all.disable_ipv6 2>/dev/null)
+    # 容错处理：如果获取不到，默认为 0 (开启)
+    [ -z "$sys_v6_val" ] && sys_v6_val=0
+
+    if [ "$sys_v6_val" -eq 1 ]; then
         SYS_V6_STATUS="${RED}已禁用${PLAIN}"
+        IS_V6_DISABLED=true
     else
         SYS_V6_STATUS="${GREEN}启用${PLAIN}"
+        IS_V6_DISABLED=false
     fi
 
-    # 状态映射
+    # 3. 状态映射逻辑 (引入“半生效”状态检测)
     MARK_1=" "; MARK_2=" "; MARK_3=" "; MARK_4=" "
+    
     case "$CURRENT_STRATEGY" in
-        "UseIPv4") STATUS_TEXT="${YELLOW}仅 IPv4${PLAIN} (系统 IPv6: ${SYS_V6_STATUS})"; MARK_3="${GREEN}●${PLAIN}" ;;
-        "UseIPv6") STATUS_TEXT="${YELLOW}仅 IPv6${PLAIN} (系统 IPv4: 保持启用)"; MARK_4="${GREEN}●${PLAIN}" ;;
+        "UseIPv4")
+            # [逻辑修复] 只有当 Xray=UseIPv4 且 系统v6=禁用 时，才算完美的选项 3
+            if [ "$IS_V6_DISABLED" = true ]; then
+                STATUS_TEXT="${YELLOW}仅 IPv4 (纯净模式)${PLAIN}"
+                MARK_3="${GREEN}●${PLAIN}" 
+            else
+                # 否则说明是“安装后的初始混合态”
+                STATUS_TEXT="${YELLOW}仅 IPv4${PLAIN} (系统 IPv6: ${SYS_V6_STATUS} - ${RED}未对齐${PLAIN})"
+                MARK_3="${YELLOW}●${PLAIN}" # 使用黄色圆点提示差异
+            fi
+            ;;
+        "UseIPv6")
+            STATUS_TEXT="${YELLOW}仅 IPv6${PLAIN} (系统 IPv4: 保持启用)"
+            MARK_4="${GREEN}●${PLAIN}" 
+            ;;
         *)
             if grep -q "^precedence ::ffff:0:0/96  100" "$GAI_CONF" 2>/dev/null; then
-                STATUS_TEXT="${GREEN}双栈 - v4 优先${PLAIN}"; MARK_1="${GREEN}●${PLAIN}"
+                STATUS_TEXT="${GREEN}双栈 - v4 优先${PLAIN}"
+                MARK_1="${GREEN}●${PLAIN}"
             else
-                STATUS_TEXT="${GREEN}双栈 - v6 优先${PLAIN}"; MARK_2="${GREEN}●${PLAIN}"
-            fi ;;
+                STATUS_TEXT="${GREEN}双栈 - v6 优先${PLAIN}"
+                MARK_2="${GREEN}●${PLAIN}"
+            fi 
+            ;;
     esac
 }
 
