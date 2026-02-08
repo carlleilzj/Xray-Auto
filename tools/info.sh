@@ -106,7 +106,7 @@ fi
 
 echo -e "\n------------------------------------------------------------------"
 echo -e " 常用工具: "
-echo -e " ${YELLOW}info${PLAIN}  (信息) | ${YELLOW}net${PLAIN} (网络) | ${YELLOW}swap${PLAIN} (内存) | ${YELLOW}f2b${PLAIN} (防火墙)"
-echo -e " ${YELLOW}ports${PLAIN} (端口) | ${YELLOW}bbr${PLAIN} (内核) | ${YELLOW}bt${PLAIN}   (封禁) | ${YELLOW}sni${PLAIN} (域名) | ${YELLOW}xw${PLAIN}  (WARP分流)"
+echo -e " ${YELLOW}info${PLAIN}  (信息) | ${YELLOW}net${PLAIN} (网络) | ${YELLOW}xw${PLAIN}  (WARP分流)| ${YELLOW}swap${PLAIN} (内存) | ${YELLOW}f2b${PLAIN}    (防火墙)"
+echo -e " ${YELLOW}ports${PLAIN} (端口) | ${YELLOW}bbr${PLAIN} (内核) | ${YELLOW}bt${PLAIN}  (封禁)    | ${YELLOW}sni${PLAIN}  (域名) | ${YELLOW}remove${PLAIN} (一键卸载)"
 echo -e "------------------------------------------------------------------"
 echo ""
