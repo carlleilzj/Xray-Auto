@@ -2,7 +2,7 @@
 
 **全自动、模块化的 Xray 部署脚本**
 
-[![Top Language](https://img.shields.io/github/languages/top/ISFZY/test?style=flat-square&color=5D6D7E)](https://github.com/ISFZY/test/search?l=Shell)
+[![Top Language](https://img.shields.io/github/languages/top/ISFZY/Xray-Auto?style=flat-square&color=5D6D7E)](https://github.com/ISFZY/Xray-Auto/search?l=Shell)
 [![Xray Core](https://img.shields.io/badge/Core-Xray-blue?style=flat-square)](https://github.com/XTLS/Xray-core)
 [![License](https://img.shields.io/badge/License-MIT-orange?style=flat-square)](LICENSE)
 [![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/ISFZY/Xray-Auto?include_prereleases&style=flat-square&color=blue&refresh=1)](https://github.com/ISFZY/Xray-Auto/releases)
