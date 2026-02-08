@@ -5,7 +5,7 @@
 [![Top Language](https://img.shields.io/github/languages/top/ISFZY/test?style=flat-square&color=5D6D7E)](https://github.com/ISFZY/test/search?l=Shell)
 [![Xray Core](https://img.shields.io/badge/Core-Xray-blue?style=flat-square)](https://github.com/XTLS/Xray-core)
 [![License](https://img.shields.io/badge/License-MIT-orange?style=flat-square)](LICENSE)
-[![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/ISFZY/Xray-Auto?include_prereleases&style=flat-square&color=blue&refresh=1)](https://github.com/ISFZY/test/releases)
+[![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/ISFZY/Xray-Auto?include_prereleases&style=flat-square&color=blue&refresh=1)](https://github.com/ISFZY/Xray-Auto/releases)
 
 本项目是一个高度模块化的 Shell 脚本，用于在 Linux 服务器上快速部署基于 **Xray** 核心的代理服务。支持最新的 **Vision** 和 **XHTTP** 协议，并集成了由 Reality 驱动的 SNI 伪装技术。
 
