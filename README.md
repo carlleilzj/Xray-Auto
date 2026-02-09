@@ -102,7 +102,7 @@ bash <(curl -sL https://raw.githubusercontent.com/ISFZY/Xray-Auto/main/tools/rem
 | **ShortId** | `a1b2...` | 输入 `info` 获取 |
 | **路径 (Path)** | `/8d39f310` | **仅 xhttp 节点填写** |
 
-**多用户管理（User）请执行 'user` 获取详细信息**
+注：多用户管理（User）请执行 'user` 获取详细信息
 ---
 
 ## 📂 项目结构 (Structure)
