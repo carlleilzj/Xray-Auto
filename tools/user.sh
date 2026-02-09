@@ -39,8 +39,6 @@ _print_list() {
         fi
     done
     echo -e "${GRAY}-----------------------------------------------------------------------${PLAIN}"
-	echo -e "${GREEN}回车 或 0 返回${PLAIN}"
-	echo -e ""
 }
 
 # 2. 生成链接并显示 (复用 info.sh 逻辑)
@@ -121,7 +119,7 @@ _show_connection_info() {
 # 3. 查看用户详情
 view_user_details() {
     _print_list
-    echo -e "${YELLOW}提示：输入序号可查看详细连接信息${PLAIN}"
+    echo -e "${YELLOW}提示：输入序号可查看详细连接信息${PLAIN} ${GREEN}[回车 或 0 返回]${PLAIN}"
     read -p "序号: " idx
     
     if [[ -z "$idx" || "$idx" == "0" ]]; then return; fi
@@ -226,7 +224,7 @@ del_user() {
     local idx=""
 
     while true; do
-        echo -e "${YELLOW}请输入要删除的用户 序号 (ID):${PLAIN}"
+        echo -e "${YELLOW}请输入要删除的用户 序号 (ID):${PLAIN} ${GREEN}[回车 或 0 返回]${PLAIN}"
         read -p "序号: " idx
         
         # 返回逻辑
