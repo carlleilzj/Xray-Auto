@@ -24,9 +24,9 @@ if ! [ -x "$XRAY_BIN" ]; then echo -e "${RED}Error: 缺少 xray 核心。${PLAIN
 # 1. 列表展示 (Admin 显示为 #, 用户从 1 开始)
 _print_list() {
     echo -e "${BLUE}>>> 当前用户列表 (User List)${PLAIN}"
-    echo -e "${GRAY}-----------------------------------------------------------------------${PLAIN}"
+    echo -e "${GRAY}------------------------------------------------------------------${PLAIN}"
     printf "${YELLOW}%-5s %-25s %-40s${PLAIN}\n" "ID" "备注" "UUID"
-    echo -e "${GRAY}-----------------------------------------------------------------------${PLAIN}"
+    echo -e "${GRAY}------------------------------------------------------------------${PLAIN}"
     
     # 使用 jq to_entries 获取真实索引 (key=0,1,2...)
     jq -r '.inbounds[0].settings.clients | to_entries[] | "\(.key) \(.value.email // "无备注") \(.value.id)"' "$CONFIG_FILE" | while read idx email uuid; do
