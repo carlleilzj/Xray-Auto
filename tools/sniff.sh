@@ -210,7 +210,7 @@ while true; do
     echo -e "  3. 开启 访问日志 (Access Log)"
     echo -e "  4. 关闭 访问日志"
     echo -e "-------------------------------------------------"
-    echo -e "  5. ${YELLOW}>> 进入实时流量审计模式 (Watch Log)${PLAIN}"
+    echo -e "  5. ${YELLOW}进入实时流量审计模式 (Watch Log)${PLAIN}"
     echo -e "-------------------------------------------------"
     echo -e "  0. 退出"
     echo -e ""
