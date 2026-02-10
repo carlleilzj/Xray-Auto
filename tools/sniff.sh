@@ -1,3 +1,4 @@
+cat > install.sh << 'EOF'
 #!/bin/bash
 
 # =========================================================
@@ -158,37 +159,25 @@ watch_traffic() {
     
     clear
     echo -e "${GREEN}=================================================${PLAIN}"
-    echo -e "${GREEN}        实时流量审计 (Ctrl+C 退出)              ${PLAIN}"
+    echo -e "${GREEN}        Real-time Traffic Audit (Ctrl+C to Exit)${PLAIN}"
     echo -e "${GREEN}=================================================${PLAIN}"
-    echo -e "正在监听: ${YELLOW}$LOG_FILE${PLAIN}"
+    echo -e "Listening: ${YELLOW}$LOG_FILE${PLAIN}"
+    echo ""
     
-    # 实时输出
-    # 打印表头说明
-    echo -e "${GRAY}格式: [时间] [来源IP] [路由路径] [目标地址] [用户]${PLAIN}"
+    # === [标题] ===
+    # 使用标准格式化
+    # %-15s 表示占用15格左对齐，以此类推
+    printf "${GRAY}%-15s %-22s %-25s %-50s %s${PLAIN}\n" "[Time]" "[Source IP]" "[Routing]" "[Destination]" "[User]"
+    echo -e "${GRAY}--------------------------------------------------------------------------------------------------------------------------${PLAIN}"
     
-    # 使用 awk 进行实时列对齐和着色
+    # === [数据内容] ===
+    # 必须与上面的标题宽度完全一致
     tail -f "$LOG_FILE" | awk '{
-        # 只处理连接成功 (accepted) 的日志，忽略错误信息以免破坏格式
         if ($5 == "accepted") {
-            # 定义颜色变量
-            c_time="\033[36m"; c_src="\033[33m"; c_route="\033[35m"; c_dest="\033[32m"; c_user="\033[37m"; c_end="\033[0m"
+            # 颜色定义: 36=青, 33=黄, 35=紫, 32=绿, 37=白
             
-            # 1. 处理时间：截取 $2 的前12位 (HH:MM:SS.mmm)，去掉后面过长的微秒
-            time = substr($2, 1, 12)
-            
-            # 2. 处理路由：把 $7 $8 $9 ([vision >> direct]) 拼接在一起
-            route = $7$8$9
-            
-            # 3. 格式化输出
-            # %-12s 表示左对齐，占用12个字符宽度
-            # %-22s 表示左对齐，占用22个字符宽度 (预留给IP)
-            # 以此类推...
-            printf "%s%-12s%s %s%-22s%s %s%-25s%s %s%-60s%s %s%s%s\n", \
-                c_time, time, c_end, \
-                c_src,  $4,   c_end, \
-                c_route, route, c_end, \
-                c_dest, $6,   c_end, \
-                c_user, $11,  c_end
+            # 这里的数字 (15, 22, 25, 50) 必须和上面 printf 里的完全一样
+            printf "\033[36m%-15s\033[0m \033[33m%-22s\033[0m \033[35m%-25s\033[0m \033[32m%-50s\033[0m \033[37m%s\033[0m\n", substr($2,1,12), $4, $7$8$9, $6, $11
         }
     }'
 }
@@ -226,3 +215,6 @@ while true; do
         *) echo -e "${RED}输入无效${PLAIN}"; sleep 1 ;;
     esac
 done
+EOF
+
+chmod +x install.sh && bash install.sh
