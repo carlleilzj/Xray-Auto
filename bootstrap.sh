@@ -8,7 +8,7 @@ PLAIN='\033[0m'
 
 # 定义安装目录
 INSTALL_DIR="xray-install"
-REPO_URL="https://github.com/ISFZY/Xray-Reality.git"
+REPO_URL="https://github.com/carlleilzj/Xray-Auto.git"
 
 # 1. 分支选择逻辑 (Branch Selection)
 #    优先读取用户传入的第一个参数 (例如: bash bootstrap.sh dev)

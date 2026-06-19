@@ -45,8 +45,8 @@ execute_task() {
 }
 
 # 6. Banner 展示
-AUTHOR="ISFZY"
-PROJECT_URL="https://github.com/ISFZY/Xray-Reality"
+AUTHOR="carlleilzj"
+PROJECT_URL="https://github.com/carlleilzj/Xray-Auto"
 
 print_banner() {
     clear
