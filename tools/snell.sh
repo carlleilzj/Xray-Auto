@@ -57,10 +57,11 @@ mkdir -p /etc/snell
 SNELL_PSK=$(head -c 24 /dev/urandom | base64 | tr -d '=+/' | head -c 20)
 
 cat > /etc/snell/snell-server.conf << EOF
+[snell-server]
 listen = ::0:${SNELL_PORT}
-psk=${SNELL_PSK}
-obfs=off
-dns=1.1.1.1,8.8.8.8
+psk = ${SNELL_PSK}
+obfs = off
+dns = 1.1.1.1, 8.8.8.8
 EOF
 
 cat > /etc/systemd/system/snell.service << EOF
@@ -102,7 +103,7 @@ cat > /etc/systemd/system/shadowtls.service << EOF
 Description=ShadowTLS V3 Service
 After=network.target
 [Service]
-ExecStart=/usr/local/bin/shadow-tls server --listen 0.0.0.0:${STLS_PORT} --server 127.0.0.1:${SNELL_PORT} --tls ${TLS_SNI}:443 --password ${STLS_PASS} --wildcard-sni authed --strict --fastopen
+ExecStart=/usr/local/bin/shadow-tls server --listen 0.0.0.0:${STLS_PORT} --server 127.0.0.1:${SNELL_PORT} --tls ${TLS_SNI}:443 --password ${STLS_PASS} --wildcard-sni authed
 Restart=on-failure
 LimitNOFILE=65536
 [Install]

@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+# set -e (disabled to prevent early exit)
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; PLAIN='\033[0m'
 
