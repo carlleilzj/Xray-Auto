@@ -9,12 +9,11 @@
 
 <a id="zh-version"></a>
 
-# 🚀 Xray-Reality 一键脚本
+# 🚀 多协议代理一键部署脚本
 
-**全自动、模块化的 Xray 部署脚本**
+**Xray Reality ｜ AnyTLS ｜ Snell + ShadowTLS — 三合一代理部署工具**
 
 [![Powered by Xray](https://img.shields.io/badge/Powered%20by-Xray--core-blue.svg?style=flat-square)](https://github.com/XTLS/Xray-core) [![Internet Freedom](https://img.shields.io/badge/Internet-Freedom-0099ff.svg?style=flat-square)](https://github.com/carlleilzj/Xray-Auto) [![404 Not Found](https://img.shields.io/badge/Censorship-404%20Not%20Found-red.svg?style=flat-square)](https://github.com/carlleilzj/Xray-Auto)
-[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ff69b4?style=flat-square)](https://github.com/carlleilzj/Xray-Auto#sponsor)
 
 [![GitHub release](https://img.shields.io/github/v/release/carlleilzj/Xray-Auto?style=flat-square)](https://github.com/carlleilzj/Xray-Auto/releases/latest) [![Downloads](https://img.shields.io/github/downloads/carlleilzj/Xray-Auto/total?style=flat-square)](https://github.com/carlleilzj/Xray-Auto/releases) [![Last Commit](https://img.shields.io/github/last-commit/carlleilzj/Xray-Auto?style=flat-square)](https://github.com/carlleilzj/Xray-Auto/commits/main) [![GitHub stars](https://img.shields.io/github/stars/carlleilzj/Xray-Auto?style=flat-square)](https://github.com/carlleilzj/Xray-Auto/stargazers) 
 
@@ -22,7 +21,15 @@
 
 
 
-本项目是一个高度模块化的 Shell 脚本，用于在 Linux 服务器上快速部署基于 **Xray** 核心的代理服务。支持最新的 **Vision** 和 **XHTTP** 协议，并集成了由 Reality 驱动的 SNI 伪装技术。
+本项目是一个多协议代理一键部署工具集，用于在 Linux 服务器上快速部署代理服务。支持三种主流协议：
+
+| 协议 | 特点 | 推荐场景 |
+|---|---|---|
+| **Xray Reality** | VLESS + Vision / XHTTP，全模块化管理 | 主力翻墙、多用户管理 |
+| **AnyTLS** | 轻量 TLS-in-TLS 伪装，完美适配 CDN | 配合 Cloudflare 中转 |
+| **Snell + ShadowTLS** | Surge 原生协议，极轻量、抗检测 | 低配 VPS、Surge 用户首选 |
+
+核心 Xray 模块支持最新的 **Vision** 和 **XHTTP** 协议，并集成了由 Reality 驱动的 SNI 伪装技术。
 
 ---
 
@@ -45,17 +52,27 @@
 
 ## 📥 快速安装 (Quick Start)
 
-### 🚀 推荐：一键安装 (Bootstrap)
-
-使用 `root` 用户运行以下命令即可。引导脚本会自动安装 Git、克隆仓库并启动安装程序。
+### 🚀 Xray Reality（完整管理面板）
 
 ```bash
 bash <(curl -sL https://raw.githubusercontent.com/carlleilzj/Xray-Auto/main/bootstrap.sh)
-
 ```
 
+### 🚀 AnyTLS（轻量 TLS-in-TLS）
 
-### 🛠️ 备用：手动安装 (Manual)
+```bash
+bash <(curl -sL https://raw.githubusercontent.com/carlleilzj/Xray-Auto/main/tools/anytls.sh)
+```
+
+### 🚀 Snell v5 + ShadowTLS v3（Surge 原生）
+
+```bash
+bash <(curl -sL https://raw.githubusercontent.com/carlleilzj/Xray-Auto/main/tools/snell.sh)
+```
+
+> 以上脚本均需 `root` 权限，支持 Debian 10+ / Ubuntu 20.04+。
+
+### 🛠️ Xray 手动安装 (Manual)
 
 如果你无法连接 GitHub Raw，可以尝试手动克隆：
 
@@ -160,7 +177,6 @@ bash <(curl -sL https://raw.githubusercontent.com/carlleilzj/Xray-Auto/main/tool
 3. 激活后，`Auto Sync Upstream` 工作流将按计划自动运行（您也可以在左侧工作流列表中找到它并手动触发同步）。
 
 <a id="sponsor"></a>
-## 💖 赞助与支持 (Sponsor)
 
 本项目完全免费开源。如果这个脚本为您节省了配置时间，并且您愿意支持后续的开发与测试服务器维护，欢迎使用我的aff购买链接！您的支持是我持续更新的最大动力。
 
@@ -204,7 +220,6 @@ bash <(curl -sL https://raw.githubusercontent.com/carlleilzj/Xray-Auto/main/tool
 **Fully Automated, Modular Xray Deployment Script**
 
 [![Powered by Xray](https://img.shields.io/badge/Powered%20by-Xray--core-blue.svg?style=flat-square)](https://github.com/XTLS/Xray-core) [![Internet Freedom](https://img.shields.io/badge/Internet-Freedom-0099ff.svg?style=flat-square)](https://github.com/carlleilzj/Xray-Auto) [![404 Not Found](https://img.shields.io/badge/Censorship-404%20Not%20Found-red.svg?style=flat-square)](https://github.com/carlleilzj/Xray-Auto)
-[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ff69b4?style=flat-square)](https://github.com/carlleilzj/Xray-Auto#sponsor)
 
 [![GitHub release](https://img.shields.io/github/v/release/carlleilzj/Xray-Auto?style=flat-square)](https://github.com/carlleilzj/Xray-Auto/releases/latest) [![Downloads](https://img.shields.io/github/downloads/carlleilzj/Xray-Auto/total?style=flat-square)](https://github.com/carlleilzj/Xray-Auto/releases) [![Last Commit](https://img.shields.io/github/last-commit/carlleilzj/Xray-Auto?style=flat-square)](https://github.com/carlleilzj/Xray-Auto/commits/main) [![GitHub stars](https://img.shields.io/github/stars/carlleilzj/Xray-Auto?style=flat-square)](https://github.com/carlleilzj/Xray-Auto/stargazers) 
 
@@ -347,7 +362,6 @@ This repository includes a built-in GitHub Actions workflow that automatically f
 3. Once enabled, the `Auto Sync Upstream` workflow will run automatically on schedule (you can also find it in the left sidebar to trigger it manually).
 
 
-## 💖 Sponsor & Support
 
 This project is completely free and open-source. If you find this script helpful, if it saves you time, and you'd like to support ongoing development and server maintenance, consider use my aff! Your support is my greatest motivation.
 
