@@ -2,7 +2,7 @@
 # =========================================
 # Snell v5 + ShadowTLS v3 一键安装
 # =========================================
-set -e
+# set -e (removed to prevent early exit on non-critical failures)
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; PLAIN='\033[0m'
 clear
 echo -e "${BLUE}================================================${PLAIN}"
