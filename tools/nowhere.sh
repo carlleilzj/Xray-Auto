@@ -52,14 +52,12 @@ read -p "$(echo -e ${GREEN}"spec [默认 nightfall]: "${PLAIN})" SPEC
 SPEC=${SPEC:-nightfall}
 
 echo -e "${YELLOW}网络模式:${PLAIN}"
-echo -e "  1. mix (TLS/TCP + QUIC/UDP, 推荐)"
+echo -e "  1. udp (QUIC/UDP, 推荐 - 更快)"
 echo -e "  2. tcp (仅 TLS/TCP)"
-echo -e "  3. udp (仅 QUIC/UDP)"
 read -p "$(echo -e ${GREEN}"选择 [1]: "${PLAIN})" NET_CHOICE
 case $NET_CHOICE in
     2) NET="tcp" ;;
-    3) NET="udp" ;;
-    *) NET="mix" ;;
+    *) NET="udp" ;;
 esac
 
 # ---------- 下载安装 ----------
@@ -91,7 +89,7 @@ Documentation=https://github.com/NodePassProject/Nowhere
 After=network.target
 
 [Service]
-ExecStart=${INSTALL_DIR}/nowhere 'portal://${KEY}@0.0.0.0:${PORT}?spec=${SPEC}&net=${NET}&tls=1'
+ExecStart=${INSTALL_DIR}/nowhere 'portal://${KEY}@0.0.0.0:${PORT}?spec=${SPEC}&net=mix&tls=1'
 Restart=on-failure
 RestartSec=10
 LimitNOFILE=65536
